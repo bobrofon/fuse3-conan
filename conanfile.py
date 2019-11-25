@@ -10,8 +10,18 @@ class LibfuseConan(ConanFile):
     description = "Linux FUSE (Filesystem in Userspace) interface"
     topics = ("fuse", "fs")
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = {"shared": False}
+    options = {"shared": [True, False],
+               "disable_mtab": [True, False],
+               "examples": [True, False],
+               "udevrulesdir": "ANY",
+               "useroot": [True, False],
+               "utils": [True, False]}
+    default_options = {"shared": False,
+                       "disable_mtab": False,
+                       "examples": False,
+                       "udevrulesdir": "/etc/udev/rules.d",
+                       "useroot": True,
+                       "utils": True}
     generators = "pkg_config"
     build_requires = "meson_installer/0.51.0@bincrafters/stable"
 
@@ -22,7 +32,11 @@ class LibfuseConan(ConanFile):
     def build(self):
         meson = Meson(self)
         meson.configure(source_folder="fuse", build_folder="build",
-                        args=["-D", "udevrulesdir=/etc/udev/rules.d"])
+                        args=["-D", "disable-mtab={}".format("true" if self.options.disable_mtab else "false"),
+                              "-D", "examples={}".format("true" if self.options.examples else "false"),
+                              "-D", "udevrulesdir={}".format(self.options.udevrulesdir),
+                              "-D", "useroot={}".format("true" if self.options.useroot else "false"),
+                              "-D", "utils={}".format("true" if self.options.utils else "false")])
         meson.build()
 
     def package(self):
