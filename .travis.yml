@@ -5,7 +5,7 @@ env:
      - CONAN_USERNAME: "bobrofon"
      - CONAN_LOGIN_USERNAME: "bobrofon"
      - CONAN_CHANNEL: "testing"
-     - CONAN_UPLOAD: "https://api.bintray.com/conan/bobrofon/fuse3"
+     - CONAN_UPLOAD: "https://api.bintray.com/conan/bobrofon/sshfs-world"
 
 linux: &linux
    os: linux
