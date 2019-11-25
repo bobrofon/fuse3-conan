@@ -13,6 +13,7 @@ class LibfuseConan(ConanFile):
     options = {"shared": [True, False]}
     default_options = {"shared": False}
     generators = "pkg_config"
+    build_requires = "meson_installer/0.51.0@bincrafters/stable"
 
     def source(self):
         git = tools.Git(folder="fuse")
