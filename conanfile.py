@@ -51,3 +51,4 @@ class LibfuseConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = ["fuse3", "dl", "pthread"]
+        self.cpp_info.defines = ["_FILE_OFFSET_BITS=64"]
