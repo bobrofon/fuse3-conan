@@ -4,6 +4,8 @@ from conans import ConanFile, tools, Meson
 
 import tools.meson as meson_tools
 
+from tools.meson import with_fake_compiler
+
 
 class LibfuseConan(ConanFile):
     name = 'fuse3'
@@ -60,11 +62,17 @@ class LibfuseConan(ConanFile):
             meson_tools.write_cross_file(self.cross_file_name, self)
             args += ['--cross-file', 'cross_file.txt']
 
+        # there is no usage of native compiler but we had to trick
+        # meson's sanity check somehow
+        meson_env = (with_fake_compiler()
+                     if tools.cross_building(self.settings)
+                     else tools.no_op())
         self.meson = Meson(self)
-        self.meson.configure(source_folder='fuse',
-                             build_folder='build',
-                             args=args,
-                             defs=meson_tools.common_flags(self.settings))
+        with meson_env:
+            self.meson.configure(source_folder='fuse',
+                                 build_folder='build',
+                                 args=args,
+                                 defs=meson_tools.common_flags(self.settings))
         self.meson.build()
 
     def package(self):
