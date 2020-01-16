@@ -41,7 +41,7 @@ class LibfuseConan(ConanFile):
         git = tools.Git(folder='fuse')
         git.clone('https://github.com/libfuse/libfuse.git', git_tag)
 
-        # TODO: remove
+        # TODO: remove (problems with installation paths within install_helper)
         tools.replace_in_file('fuse/util/meson.build',
 """meson.add_install_script('install_helper.sh',
                          join_paths(get_option('prefix'), get_option('sysconfdir')),
