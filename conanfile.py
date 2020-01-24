@@ -4,6 +4,7 @@ from conans import ConanFile, tools, Meson
 
 import tools.meson as meson_tools
 
+from tools import append_value
 from tools.meson import with_fake_compiler
 
 
@@ -62,6 +63,10 @@ class LibfuseConan(ConanFile):
             meson_tools.write_cross_file(self.cross_file_name, self)
             args += ['--cross-file', 'cross_file.txt']
 
+        defs = meson_tools.common_flags(self.settings)
+        if not self.options.shared:
+            append_value(defs, 'c_link_args', '-static')
+
         # there is no usage of native compiler but we had to trick
         # meson's sanity check somehow
         meson_env = (with_fake_compiler()
@@ -72,7 +77,7 @@ class LibfuseConan(ConanFile):
             self.meson.configure(source_folder='fuse',
                                  build_folder='build',
                                  args=args,
-                                 defs=meson_tools.common_flags(self.settings))
+                                 defs=defs)
         self.meson.build()
 
     def package(self):
