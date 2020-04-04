@@ -6,6 +6,7 @@ env:
      - CONAN_LOGIN_USERNAME: "bobrofon"
      - CONAN_CHANNEL: "testing"
      - CONAN_UPLOAD: "https://api.bintray.com/conan/bobrofon/sshfs-world"
+     - CONAN_BUILD_POLICY: "missing"
 
 linux: &linux
    os: linux
