@@ -1,6 +1,4 @@
-import os
-
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, CMake
 
 
 class LibfuseTestConan(ConanFile):
@@ -12,11 +10,6 @@ class LibfuseTestConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-
-    def imports(self):
-        self.copy("*.dll", dst="bin", src="bin")
-        self.copy("*.dylib*", dst="bin", src="lib")
-        self.copy('*.so*', dst='bin', src='lib')
 
     def test(self):
         pass
