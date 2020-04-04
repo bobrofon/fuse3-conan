@@ -1,0 +1,57 @@
+From 22007e0532f839adb8679195975a4beab21e3e5a Mon Sep 17 00:00:00 2001
+From: Sergey Bobrenok <bobrofon@yandex-team.ru>
+Date: Sat, 4 Apr 2020 20:15:32 +0300
+Subject: [PATCH 2/2] install_helper: Remove udevrules dir option
+
+---
+ util/install_helper.sh | 5 ++---
+ util/meson.build       | 7 -------
+ 2 files changed, 2 insertions(+), 10 deletions(-)
+
+diff --git a/util/install_helper.sh b/util/install_helper.sh
+index 3b8c7b8..7efab49 100755
+--- a/util/install_helper.sh
++++ b/util/install_helper.sh
+@@ -8,8 +8,7 @@ set -e
+ 
+ sysconfdir="$1"
+ bindir="$2"
+-udevrulesdir="$3"
+-useroot="$4"
++useroot="$3"
+ 
+ # Both sysconfdir and bindir are absolute paths (since they are joined
+ # with --prefix in meson.build), but need to be interpreted relative
+@@ -37,7 +36,7 @@ if $useroot; then
+ fi
+ 
+ install -D -m 644 "${MESON_SOURCE_ROOT}/util/udev.rules" \
+-        "${DESTDIR}${udevrulesdir}/99-fuse3.rules"
++        "${DESTDIR}${sysconfdir}/udev/rules.d/99-fuse3.rules"
+ 
+ install -D -m 755 "${MESON_SOURCE_ROOT}/util/init_script" \
+         "${DESTDIR}${sysconfdir}/init.d/fuse3"
+diff --git a/util/meson.build b/util/meson.build
+index 577668f..5040820 100644
+--- a/util/meson.build
++++ b/util/meson.build
+@@ -14,16 +14,9 @@ executable('mount.fuse3', ['mount.fuse.c'],
+            c_args: '-DFUSE_USE_VERSION=35')
+ 
+ 
+-udevrulesdir = get_option('udevrulesdir')
+-if udevrulesdir == ''
+-  udev = dependency('udev')
+-  udevrulesdir = join_paths(udev.get_pkgconfig_variable('udevdir'), 'rules.d')
+-endif
+-
+ meson.add_install_script('install_helper.sh',
+                          join_paths(get_option('prefix'), get_option('sysconfdir')),
+                          join_paths(get_option('prefix'), get_option('bindir')),
+-                         udevrulesdir,
+                          '@0@'.format(get_option('useroot')))
+ 
+ 
+-- 
+2.26.0
+

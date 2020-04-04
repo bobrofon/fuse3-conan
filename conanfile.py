@@ -21,13 +21,11 @@ class LibfuseConan(ConanFile):
     options = {'shared': [True, False],
                'disable_mtab': [True, False],
                'examples': [True, False],
-               'udevrulesdir': 'ANY',
                'useroot': [True, False],
                'utils': [True, False]}
     default_options = {'shared': False,
                        'disable_mtab': False,
                        'examples': False,
-                       'udevrulesdir': '/etc/udev/rules.d',
                        'useroot': False,
                        'utils': True}
     generators = 'pkg_config'
@@ -35,6 +33,7 @@ class LibfuseConan(ConanFile):
 
     patches = 'patches/*.patch'
     exports = 'tools/*.py', patches
+    src_repo_folder = 'fuse'
 
     cross_file_name = 'cross_file.txt'
 
@@ -43,21 +42,20 @@ class LibfuseConan(ConanFile):
     def source(self):
         git_tag = 'fuse-' + self.version
 
-        git = tools.Git(folder='fuse')
+        git = tools.Git(folder=self.src_repo_folder)
         git.clone('https://github.com/libfuse/libfuse.git', git_tag)
 
     @classmethod
     def apply_patches(cls):
         for patch in sorted(glob.glob(cls.patches)):
             print('Apply patch {}'.format(patch))
-            tools.patch(patch)
+            tools.patch(base_path=cls.src_repo_folder, patch_file=patch)
 
     def build(self):
         self.apply_patches()
 
         args = ['-D', 'disable-mtab=' + str(self.options.disable_mtab).lower(),
                 '-D', 'examples=' + str(self.options.examples).lower(),
-                '-D', 'udevrulesdir=' + str(self.options.udevrulesdir),
                 '-D', 'useroot=' + str(self.options.useroot).lower(),
                 '-D', 'utils=' + str(self.options.utils).lower()]
 
@@ -76,7 +74,7 @@ class LibfuseConan(ConanFile):
                      else tools.no_op())
         self.meson = Meson(self)
         with meson_env:
-            self.meson.configure(source_folder='fuse',
+            self.meson.configure(source_folder=self.src_repo_folder,
                                  build_folder='build',
                                  args=args,
                                  defs=defs)
