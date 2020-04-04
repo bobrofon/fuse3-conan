@@ -30,7 +30,7 @@ class LibfuseConan(ConanFile):
                        'useroot': False,
                        'utils': True}
     generators = 'pkg_config'
-    build_requires = 'meson_installer/0.51.0@bincrafters/stable'
+    build_requires = 'meson/0.54.0'
 
     exports = 'tools/*.py'
 

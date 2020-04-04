@@ -6,6 +6,7 @@ from conans import ConanFile, CMake, tools
 class LibfuseTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
+    build_requires = 'cmake/3.17.0'
 
     def build(self):
         cmake = CMake(self)
