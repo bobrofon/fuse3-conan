@@ -1,7 +1,7 @@
 
 env:
    global:
-     - CONAN_REFERENCE: "fuse3/3.7.0"
+     - CONAN_REFERENCE: "fuse3/3.9.1"
      - CONAN_USERNAME: "bobrofon"
      - CONAN_LOGIN_USERNAME: "bobrofon"
      - CONAN_CHANNEL: "testing"

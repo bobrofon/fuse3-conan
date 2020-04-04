@@ -10,7 +10,7 @@ from tools.meson import with_fake_compiler
 
 class LibfuseConan(ConanFile):
     name = 'fuse3'
-    version = '3.7.0'
+    version = '3.9.1'
     license = 'LGPLv2'
     author = 'bobrofon@gmail.com'
     url = 'https://github.com/bobrofon/fuse3-conan'
