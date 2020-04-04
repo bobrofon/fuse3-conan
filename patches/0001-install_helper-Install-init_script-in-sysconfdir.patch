@@ -1,0 +1,40 @@
+From 488f9048fac4ff9552860aa622db22b5426d9996 Mon Sep 17 00:00:00 2001
+From: Sergey Bobrenok <bobrofon@gmail.com>
+Date: Thu, 16 Jan 2020 19:59:33 +0300
+Subject: [PATCH 1/1] install_helper: Install init_script in sysconfdir
+
+fuse3 init script was always installing to /etc directory even if prefix
+variable is defined. Now it is installing to sysconfdir directory.
+Also update-rc.d was running even if using root permissins was
+explicitly disabled via useroot definition.
+
+Fixes #489
+---
+ util/install_helper.sh | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/util/install_helper.sh b/util/install_helper.sh
+index cb649a7..3b8c7b8 100755
+--- a/util/install_helper.sh
++++ b/util/install_helper.sh
+@@ -40,14 +40,14 @@ install -D -m 644 "${MESON_SOURCE_ROOT}/util/udev.rules" \
+         "${DESTDIR}${udevrulesdir}/99-fuse3.rules"
+ 
+ install -D -m 755 "${MESON_SOURCE_ROOT}/util/init_script" \
+-        "${DESTDIR}/etc/init.d/fuse3"
++        "${DESTDIR}${sysconfdir}/init.d/fuse3"
+ 
+ 
+-if test -x /usr/sbin/update-rc.d && test -z "${DESTDIR}"; then
++if test -x /usr/sbin/update-rc.d && test -z "${DESTDIR}" && $useroot; then
+     /usr/sbin/update-rc.d fuse3 start 34 S . start 41 0 6 . || /bin/true
+ else
+     echo "== FURTHER ACTION REQUIRED =="
+-    echo "Make sure that your init system will start the ${DESTDIR}/etc/init.d/fuse3 init script"
++    echo "Make sure that your init system will start the ${DESTDIR}${sysconfdir}/init.d/fuse3 init script"
+ fi
+ 
+ 
+-- 
+2.26.0
+

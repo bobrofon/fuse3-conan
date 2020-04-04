@@ -1,4 +1,5 @@
 import os
+import glob
 
 from conans import ConanFile, tools, Meson
 
@@ -32,7 +33,8 @@ class LibfuseConan(ConanFile):
     generators = 'pkg_config'
     build_requires = 'meson/0.54.0'
 
-    exports = 'tools/*.py'
+    patches = 'patches/*.patch'
+    exports = 'tools/*.py', patches
 
     cross_file_name = 'cross_file.txt'
 
@@ -44,15 +46,15 @@ class LibfuseConan(ConanFile):
         git = tools.Git(folder='fuse')
         git.clone('https://github.com/libfuse/libfuse.git', git_tag)
 
-        # TODO: remove (problems with installation paths within install_helper)
-        tools.replace_in_file('fuse/util/meson.build',
-"""meson.add_install_script('install_helper.sh',
-                         join_paths(get_option('prefix'), get_option('sysconfdir')),
-                         join_paths(get_option('prefix'), get_option('bindir')),
-                         udevrulesdir,
-                         '@0@'.format(get_option('useroot')))""", '')
+    @classmethod
+    def apply_patches(cls):
+        for patch in sorted(glob.glob(cls.patches)):
+            print('Apply patch {}'.format(patch))
+            tools.patch(patch)
 
     def build(self):
+        self.apply_patches()
+
         args = ['-D', 'disable-mtab=' + str(self.options.disable_mtab).lower(),
                 '-D', 'examples=' + str(self.options.examples).lower(),
                 '-D', 'udevrulesdir=' + str(self.options.udevrulesdir),
