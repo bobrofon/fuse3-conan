@@ -16,6 +16,7 @@ if __name__ == "__main__":
         "gcc-toolchain:arch": arch_build,
         "ninja:arch": arch_build,
         "meson:arch": arch_build,
+        "cmake_installer:arch": arch_build,
     }
     options = {
         "*:shared": False,
