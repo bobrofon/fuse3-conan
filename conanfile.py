@@ -1,89 +1,94 @@
 import os
 import glob
 
-from conans import ConanFile, tools, Meson
+from conans import ConanFile, tools
+from conans.errors import ConanInvalidConfiguration
+from conan.tools.meson import MesonToolchain, Meson
 
-import tools.meson as meson_tools
 
-from tools import append_value
-from tools.meson import with_fake_compiler
+required_conan_version = ">=1.33.0"
 
 
 class LibfuseConan(ConanFile):
     name = 'fuse3'
-    version = '3.9.1'
-    license = 'LGPLv2'
+    version = '3.10.1'
+    license = ' LGPL-2.1-only'
     author = 'bobrofon@gmail.com'
     url = 'https://github.com/bobrofon/fuse3-conan'
+    homepage = 'https://github.com/libfuse/libfuse'
     description = 'Linux FUSE (Filesystem in Userspace) interface'
-    topics = ('fuse', 'fs')
+    topics = ('conan', 'libfuse', 'fuse', 'fs', 'filesystems', 'C')
     settings = ('os', 'compiler', 'build_type', 'arch')
-    options = {'shared': [True, False],
-               'disable_mtab': [True, False],
-               'examples': [True, False],
-               'useroot': [True, False],
-               'utils': [True, False]}
-    default_options = {'shared': False,
-                       'disable_mtab': False,
-                       'examples': False,
-                       'useroot': False,
-                       'utils': True}
-    generators = 'pkg_config'
-    build_requires = 'meson/0.54.0'
+    options = {
+        'shared': [True, False],
+        'fPIC': [True, False],
+    }
+    default_options = {
+        'shared': False,
+        'fPIC': True,
+    }
+    _patches = 'patches/*.patch'
+    exports = 'tools/*.py', _patches
+    _source_subfolder = 'source_subfolder'
+    _build_subfolder = 'build_subfolder'
+    _meson = None
 
-    patches = 'patches/*.patch'
-    exports = 'tools/*.py', patches
-    src_repo_folder = 'fuse'
+    def validate(self):
+        if self.settings.os != "Linux":
+            raise ConanInvalidConfiguration("Only Linux supported")
 
-    cross_file_name = 'cross_file.txt'
+    def configure(self):
+        if self.options.shared:
+            del self.options.fPIC
+        del self.settings.compiler.cppstd
+        del self.settings.compiler.libcxx
 
-    meson = None
+    def build_requirements(self):
+        self.build_requires('meson/0.56.2')
 
     def source(self):
-        git_tag = 'fuse-' + self.version
+        tools.get(**self.conan_data["sources"][self.version])
+        os.rename("fuse-" + self.version, self._source_subfolder)
 
-        git = tools.Git(folder=self.src_repo_folder)
-        git.clone('https://github.com/libfuse/libfuse.git', git_tag)
+    def _apply_patches(self):
+        for patch in sorted(glob.glob(self._patches)):
+            self.output.info('Apply patch {}'.format(patch))
+            tools.patch(base_path=self._source_subfolder, patch_file=patch)
 
-    @classmethod
-    def apply_patches(cls):
-        for patch in sorted(glob.glob(cls.patches)):
-            print('Apply patch {}'.format(patch))
-            tools.patch(base_path=cls.src_repo_folder, patch_file=patch)
+    def _configure_meson(self):
+        if self._meson:
+            return self._meson
+
+        env = os.environ.copy()
+        # meson will autodetect linker
+        del env['LD']
+        tc = MesonToolchain(self, env=env)
+        tc.definitions['disable-mtab'] = False
+        tc.definitions['examples'] = False
+        tc.definitions['useroot'] = False
+        tc.definitions['utils'] = False
+        tc.generate()
+
+        self._meson = Meson(self, build_folder=self._build_subfolder)
+        self._meson.configure(source_folder=self._source_subfolder)
+        return self._meson
 
     def build(self):
-        self.apply_patches()
-
-        args = ['-D', 'disable-mtab=' + str(self.options.disable_mtab).lower(),
-                '-D', 'examples=' + str(self.options.examples).lower(),
-                '-D', 'useroot=' + str(self.options.useroot).lower(),
-                '-D', 'utils=' + str(self.options.utils).lower()]
-
-        if tools.cross_building(self.settings):
-            meson_tools.write_cross_file(self.cross_file_name, self)
-            args += ['--cross-file', 'cross_file.txt']
-
-        defs = meson_tools.common_flags(self.settings)
-        if not self.options.shared:
-            append_value(defs, 'c_link_args', '-static')
-
-        # there is no usage of native compiler but we had to trick
-        # meson's sanity check somehow
-        meson_env = (with_fake_compiler()
-                     if tools.cross_building(self.settings)
-                     else tools.no_op())
-        self.meson = Meson(self)
-        with meson_env:
-            self.meson.configure(source_folder=self.src_repo_folder,
-                                 build_folder='build',
-                                 args=args,
-                                 defs=defs)
-        self.meson.build()
+        self._apply_patches()
+        meson = self._configure_meson()
+        meson.build()
 
     def package(self):
-        self.meson.install()
+        meson = self._configure_meson()
+        meson.install()
+        self.copy(pattern="LGPL2.txt", dst="licenses", src=self._source_subfolder)
+        if os.path.exists(os.path.join(self.package_folder, "lib64")):
+            os.rename(os.path.join(self.package_folder, "lib64"),
+                      os.path.join(self.package_folder, "lib"))
+        tools.rmdir(os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
-        self.cpp_info.libs = ['fuse3', 'dl', 'pthread']
-        self.cpp_info.defines = ['_FILE_OFFSET_BITS=64']
+        self.cpp_info.libs.append('fuse3')
+        self.cpp_info.defines.append('_FILE_OFFSET_BITS=64')
         self.cpp_info.includedirs.append(os.path.join('include', 'fuse3'))
+        self.cpp_info.system_libs.extend(('dl', 'pthread', 'rt'))

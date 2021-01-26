@@ -1,5 +1,5 @@
 From 22007e0532f839adb8679195975a4beab21e3e5a Mon Sep 17 00:00:00 2001
-From: Sergey Bobrenok <bobrofon@yandex-team.ru>
+From: Sergey Bobrenok <bobrofon@gmail.com>
 Date: Sat, 4 Apr 2020 20:15:32 +0300
 Subject: [PATCH 2/2] install_helper: Remove udevrules dir option
 

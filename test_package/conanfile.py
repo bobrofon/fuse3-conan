@@ -3,8 +3,7 @@ from conans import ConanFile, CMake
 
 class LibfuseTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
-    build_requires = 'cmake/3.17.0'
+    generators = ("cmake", "pkg_config")
 
     def build(self):
         cmake = CMake(self)
