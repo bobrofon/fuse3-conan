@@ -43,9 +43,6 @@ class LibfuseConan(ConanFile):
         del self.settings.compiler.cppstd
         del self.settings.compiler.libcxx
 
-    def build_requirements(self):
-        self.build_requires('meson/0.56.2')
-
     def source(self):
         tools.get(**self.conan_data["sources"][self.version])
         os.rename("fuse-" + self.version, self._source_subfolder)

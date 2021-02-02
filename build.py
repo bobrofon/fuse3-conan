@@ -23,7 +23,10 @@ if __name__ == "__main__":
         "*:fPIC": True,
     }
     build_requires = {
-        "*": ["gcc-toolchain/6.3.0@bobrofon/stable"]
+        "*": [
+            "gcc-toolchain/6.3.0@bobrofon/stable",
+            "meson/0.56.2"
+        ]
     }
 
     builder = ConanMultiPackager(
